@@ -1,0 +1,61 @@
+version: '3' 
+
+networks:
+    chezbanu:
+
+
+services:
+
+    nginx:
+        # build:
+        #     context: .
+        #     dockerfile: :nginx.dockerfile
+        image: nginx:latest
+        container_name: server
+        ports:
+            - "8080:80"
+        volumes: 
+            - ./src/public:/usr/share/nginx/www
+            - ./nginx/default.conf:/etc/nginx/conf.d/default.conf 
+        depends_on: 
+            - php
+            - db
+        networks: 
+            - chezbanu
+        # environment:
+        #     - NGINX_HOST=chezbanu.ro
+        #     - NGINX_PORT=80
+
+    
+    db:
+        image: mysql:latest
+        container_name: mysql
+        restart: unless-stopped
+        tty: true
+        ports:
+            - "3306:3306"
+        volumes: 
+            - ./database:/var/lib/mysql
+        environment: 
+            MYSQL_DATABASE: kitchen
+            MYSQL_USER: banu
+            MYSQL_PASSWORD: parola
+            MYSQL_ROOT_PASSWORD: secret
+            SERVICE_TAG: dev
+            SERVICE_NAME: postgres
+        networks: 
+            - chezbanu
+
+
+    php:
+        build:
+            context: .
+            dockerfile: dockerfile
+        container_name: php
+        volumes:
+            - ./src:/var/www/html:delegated
+        ports: 
+            - "9000:9000"
+        networks: 
+            - chezbanu
+        
